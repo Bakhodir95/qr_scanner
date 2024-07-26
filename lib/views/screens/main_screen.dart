@@ -77,15 +77,15 @@ class _MainScreenState extends State<MainScreen> {
                 color: const Color(0xff333333),
               ),
               width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height / 9,
+              height: MediaQuery.of(context).size.height / 7,
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         InkWell(
                             onTap: () {
@@ -106,6 +106,7 @@ class _MainScreenState extends State<MainScreen> {
                       ],
                     ),
                     Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         GestureDetector(
                             onTap: () {},
@@ -122,7 +123,7 @@ class _MainScreenState extends State<MainScreen> {
               ),
             ),
             Positioned(
-              top: -70,
+              top: -80,
               child: GestureDetector(
                 onTap: () {
                   Navigator.push(
@@ -134,8 +135,8 @@ class _MainScreenState extends State<MainScreen> {
                 },
                 child: Image.asset(
                   "images/center.png",
-                  width: 150,
-                  height: 150,
+                  width: 170,
+                  height: 170,
                 ),
               ),
             ),

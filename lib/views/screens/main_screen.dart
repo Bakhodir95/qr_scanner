@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:qr_scanner/views/screens/scanner_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -9,6 +10,9 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  final _textController = TextEditingController();
+  bool isGenerated = false;
+  late String textedited;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,29 +24,39 @@ class _MainScreenState extends State<MainScreen> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Center(
-            child: QrImageView(
-              data: 'This QR code will show the error state instead',
-              version:
-                  QrVersions.auto, // Automatically chooses the correct version
-              size: 320,
-              gapless: false,
-              errorStateBuilder: (cxt, err) {
-                return Container(
-                  constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width,
-                    maxHeight: MediaQuery.of(context).size.height / 2,
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'Uh oh! Something went wrong...',
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                );
-              },
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: TextField(
+              controller: _textController,
+              decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: "Enter Something..."),
             ),
           ),
+          isGenerated == false
+              ? const SizedBox()
+              : Center(
+                  child: QrImageView(
+                    data: textedited,
+                    version: QrVersions.auto,
+                    size: 320,
+                    gapless: false,
+                    errorStateBuilder: (cxt, err) {
+                      return Container(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width,
+                          maxHeight: MediaQuery.of(context).size.height / 2,
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Uh oh! Something went wrong...',
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
         ],
       ),
       floatingActionButton: Padding(
@@ -68,7 +82,16 @@ class _MainScreenState extends State<MainScreen> {
                     Column(
                       children: [
                         InkWell(
-                            onTap: () {},
+                            onTap: () {
+                              print("object");
+                              textedited = _textController.text;
+                              textedited.isEmpty
+                                  ? isGenerated = false
+                                  : isGenerated = true;
+                              setState(() {
+                                _textController.clear();
+                              });
+                            },
                             child: Image.asset("images/qrcode.png")),
                         const Text(
                           "Generate",
@@ -95,10 +118,20 @@ class _MainScreenState extends State<MainScreen> {
             ),
             Positioned(
               top: -70,
-              child: Image.asset(
-                "images/center.png",
-                width: 150,
-                height: 150,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (ctx) => const QrS(),
+                    ),
+                  );
+                },
+                child: Image.asset(
+                  "images/center.png",
+                  width: 150,
+                  height: 150,
+                ),
               ),
             ),
           ],

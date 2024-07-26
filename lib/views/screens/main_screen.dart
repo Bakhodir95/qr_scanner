@@ -1,13 +1,17 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:qr_scanner/controllers/qr_code_controller.dart';
 import 'package:qr_scanner/views/screens/scanner_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:dio/dio.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -18,7 +22,6 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   final _textController = TextEditingController();
-
   bool isGenerated = false;
   late String textedited;
   final GlobalKey globalKey = GlobalKey();
@@ -46,35 +49,41 @@ class _MainScreenState extends State<MainScreen> {
           ),
           isGenerated == false
               ? const SizedBox()
-              : Center(
-                  child: QrImageView(
-                    data: textedited,
-                    version: QrVersions.auto,
-                    size: 320,
-                    gapless: false,
-                    errorStateBuilder: (cxt, err) {
-                      return Container(
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width,
-                          maxHeight: MediaQuery.of(context).size.height / 2,
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'Uh oh! Something went wrong...',
-                            textAlign: TextAlign.center,
+              : RepaintBoundary(
+                  key: globalKey,
+                  child: Center(
+                    child: QrImageView(
+                      data: textedited,
+                      version: QrVersions.auto,
+                      size: 320,
+                      gapless: false,
+                      errorStateBuilder: (cxt, err) {
+                        return Container(
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width,
+                            maxHeight: MediaQuery.of(context).size.height / 2,
                           ),
-                        ),
-                      );
-                    },
+                          child: const Center(
+                            child: Text(
+                              'Uh oh! Something went wrong...',
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
           FilledButton(
-              onPressed: () {
-                _saveLocalImage();
-              },
-              child: const Text("Save Image"))
+            onPressed: () {
+              _saveLocalImage();
+              print("object");
+            },
+            child: const Text("Save Image"),
+          )
         ],
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Padding(
         padding: const EdgeInsets.all(20),
         child: Stack(
@@ -98,16 +107,19 @@ class _MainScreenState extends State<MainScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         InkWell(
-                            onTap: () {
+                          onTap: () {
+                            setState(() {
                               textedited = _textController.text;
-                              textedited.isEmpty
-                                  ? isGenerated = false
-                                  : isGenerated = true;
-                              setState(() {
-                                _textController.clear();
-                              });
-                            },
-                            child: Image.asset("images/qrcode.png")),
+                              isGenerated = textedited.isNotEmpty;
+                              _textController.clear();
+                            });
+                          },
+                          child: Image.asset("images/qrcode.png"),
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [],
+                        ),
                         const Text(
                           "Generate",
                           style:
@@ -119,8 +131,9 @@ class _MainScreenState extends State<MainScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         GestureDetector(
-                            onTap: () {},
-                            child: Image.asset("images/refresh.png")),
+                          onTap: () {},
+                          child: Image.asset("images/refresh.png"),
+                        ),
                         const Text(
                           "History",
                           style:
@@ -158,17 +171,33 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _saveLocalImage() async {
     try {
-      RenderRepaintBoundary boundary =
-          globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      RenderRepaintBoundary? boundary = globalKey.currentContext
+          ?.findRenderObject() as RenderRepaintBoundary?;
+      if (boundary == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error: Could not find render object')),
+        );
+        return;
+      }
+
       ui.Image image = await boundary.toImage();
       ByteData? byteData =
-          await (image.toByteData(format: ui.ImageByteFormat.png));
+          await image.toByteData(format: ui.ImageByteFormat.png);
       if (byteData != null) {
-        final result =
-            await ImageGallerySaver.saveImage(byteData.buffer.asUint8List());
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['isSuccess'] ? 'Saved!' : 'Failed!')),
-        );
+        // Request permissions
+        var status = await Permission.storage.request();
+        if (status.isGranted) {
+          final result =
+              await ImageGallerySaver.saveImage(byteData.buffer.asUint8List());
+          print(result);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result['isSuccess'] ? 'Saved!' : 'Failed!')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Permission denied')),
+          );
+        }
       }
     } catch (e) {
       print(e);

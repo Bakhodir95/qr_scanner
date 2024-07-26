@@ -1,9 +1,13 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:qr_scanner/controllers/qr_code_controller.dart';
 import 'package:qr_scanner/views/screens/scanner_screen.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -17,6 +21,7 @@ class _MainScreenState extends State<MainScreen> {
 
   bool isGenerated = false;
   late String textedited;
+  final GlobalKey globalKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +68,11 @@ class _MainScreenState extends State<MainScreen> {
                     },
                   ),
                 ),
+          FilledButton(
+              onPressed: () {
+                _saveLocalImage();
+              },
+              child: const Text("Save Image"))
         ],
       ),
       floatingActionButton: Padding(
@@ -144,5 +154,27 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _saveLocalImage() async {
+    try {
+      RenderRepaintBoundary boundary =
+          globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      ui.Image image = await boundary.toImage();
+      ByteData? byteData =
+          await (image.toByteData(format: ui.ImageByteFormat.png));
+      if (byteData != null) {
+        final result =
+            await ImageGallerySaver.saveImage(byteData.buffer.asUint8List());
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['isSuccess'] ? 'Saved!' : 'Failed!')),
+        );
+      }
+    } catch (e) {
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
 }

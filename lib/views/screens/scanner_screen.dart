@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:qr_scanner/controllers/qr_code_controller.dart';
 
 class QrS extends StatefulWidget {
   const QrS({super.key});
@@ -20,14 +22,16 @@ class _QrSState extends State<QrS> {
   void reassemble() {
     super.reassemble();
     if (Platform.isAndroid) {
-      controller!.pauseCamera();
+      controller?.pauseCamera();
     } else if (Platform.isIOS) {
-      controller!.resumeCamera();
+      controller?.resumeCamera();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final providerController = context.read<QrCodeController>();
+
     return Scaffold(
       body: Column(
         children: <Widget>[
@@ -47,7 +51,18 @@ class _QrSState extends State<QrS> {
                       'Barcode Type: ${describeEnum(result!.format)}   Data: ${result!.code}')
                   : const Text('Scan a code'),
             ),
-          )
+          ),
+          if (result != null && Uri.tryParse(result!.code ?? '') != null)
+            Expanded(
+              child: Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    providerController.launchURL(result!.code!);
+                  },
+                  child: Text(result!.code!),
+                ),
+              ),
+            )
         ],
       ),
     );

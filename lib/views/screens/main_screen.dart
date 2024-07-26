@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:qr_scanner/controllers/qr_code_controller.dart';
 import 'package:qr_scanner/views/screens/scanner_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -11,10 +14,13 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   final _textController = TextEditingController();
+
   bool isGenerated = false;
   late String textedited;
+
   @override
   Widget build(BuildContext context) {
+    final providerController = context.read<QrCodeController>();
     return Scaffold(
       appBar: AppBar(
         title: const Text('QR Scanner'),
@@ -83,7 +89,6 @@ class _MainScreenState extends State<MainScreen> {
                       children: [
                         InkWell(
                             onTap: () {
-                              print("object");
                               textedited = _textController.text;
                               textedited.isEmpty
                                   ? isGenerated = false

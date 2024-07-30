@@ -10,8 +10,6 @@ import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:qr_scanner/controllers/qr_code_controller.dart';
 import 'package:qr_scanner/views/screens/scanner_screen.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:dio/dio.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -77,7 +75,6 @@ class _MainScreenState extends State<MainScreen> {
           FilledButton(
             onPressed: () {
               _saveLocalImage();
-              print("object");
             },
             child: const Text("Save Image"),
           )
@@ -116,7 +113,7 @@ class _MainScreenState extends State<MainScreen> {
                           },
                           child: Image.asset("images/qrcode.png"),
                         ),
-                        Column(
+                        const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [],
                         ),
@@ -189,11 +186,12 @@ class _MainScreenState extends State<MainScreen> {
         if (status.isGranted) {
           final result =
               await ImageGallerySaver.saveImage(byteData.buffer.asUint8List());
-          print(result);
+          // ignore: use_build_context_synchronously
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(result['isSuccess'] ? 'Saved!' : 'Failed!')),
           );
         } else {
+          // ignore: use_build_context_synchronously
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Permission denied')),
           );
@@ -201,6 +199,7 @@ class _MainScreenState extends State<MainScreen> {
       }
     } catch (e) {
       print(e);
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );

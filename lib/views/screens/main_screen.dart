@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -26,7 +25,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final providerController = context.read<QrCodeController>();
+    context.read<QrCodeController>();
     return Scaffold(
       appBar: AppBar(
         title: const Text('QR Scanner'),
@@ -198,7 +197,6 @@ class _MainScreenState extends State<MainScreen> {
         }
       }
     } catch (e) {
-      print(e);
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),

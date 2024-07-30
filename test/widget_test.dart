@@ -4,6 +4,6 @@ import 'package:qr_scanner/main.dart';
 void main() {
   testWidgets("My App Test", (tester) async {
     await tester.pumpWidget(MyApp());
-    expect(find.text("Salom, CI/CD!"), findsOneWidget);
+    expect(find.text("'Scanerlash"), findsOneWidget);
   });
 }
